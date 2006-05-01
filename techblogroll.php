@@ -4,7 +4,7 @@ Plugin Name: Technorati Blog Roll
 Plugin URI: http://blog.mericson.com/technorati-favorite-plugin/
 Description: This will inlude your favorites from Technorati
 Author: Matt Ericson
-Version: 0.01
+Version: 1.00
 Author URI: http://blog.mericson.com/
 
 INSTRUCTIONS
@@ -18,9 +18,10 @@ Or you can do this if you want an un ordered list
 
 <?php  technoratiFavoriteList("<username>", "ul"); ?>
 
+This plugin will use the Wordpress 2.0 Caching system 
 */
 
-function technoratiFavoriteList($technorati_user, $type="ol", $cache_time = 600, $cache_file = null) {
+function technoratiFavoriteList($technorati_user, $type="ol", $cache_time = 600) {
 
     if (!$technorati_user) {
         return;
@@ -33,22 +34,13 @@ function technoratiFavoriteList($technorati_user, $type="ol", $cache_time = 600,
         $t = "ol";
     }
     $api_url = "http://feeds.technorati.com/faves/" . $technorati_user . "?type=list&format=xoxo&t=$t";
-    if ($cache_file == null) {
-        $cache_file  =  "/tmp/techblogroll.$technorati_user.$cache_time.cache";
-    }
 
-    $cache_file_tmp = "$cache_file.tmp";
+    $cacheKey = "techblogroll.$technorati_user.$type";
 
-    $time = split(" ", microtime());
-    srand((double)microtime()*1000000);
+    wp_cache_init();
+    $data = wp_cache_get($cacheKey);
+    if (!$data) {
 
-    $cache_time_rnd = 30 - rand(0, 60);
-    if (
-    !file_exists($cache_file)
-    || !filesize($cache_file) > 20
-    || ((filemtime($cache_file) + $cache_time - $time[1]) + $cache_time_rnd < 0)
-    || (filemtime(__FILE__) > filemtime($cache_file))
-    ) {
         $c = curl_init($api_url);
         curl_setopt($c, CURLOPT_RETURNTRANSFER,1);
         curl_setopt($c, CURLOPT_CONNECTTIMEOUT, 2);
@@ -60,24 +52,16 @@ function technoratiFavoriteList($technorati_user, $type="ol", $cache_time = 600,
         $curl_error_code = $info['http_code'];
         curl_close($c);
         if ($curl_error_code == 200) {
-            $fpwrite = fopen($cache_file_tmp, 'w');
-            if ($fpwrite){
-                fputs($fpwrite, $response);
-                fclose($fpwrite);
-                rename($cache_file_tmp, $cache_file);
-            }
-        }
-        if ((file_exists($cache_file)) && filesize($cache_file) > 20)  {
-            echo $response;
-
+            $data = $response;
+            wp_cache_set($cacheKey,$data,'',$cache_time);
+            wp_cache_close();
         } elseif ($curl_error_code) {
             //do something here
         } else {
             //do something here
         }
-    } else {
-        echo file_get_contents($cache_file);
     }
+    echo $data;
 }
 
 ?>
