@@ -2,23 +2,25 @@
 /*
 Plugin Name: Technorati Blog Roll
 Plugin URI: http://blog.mericson.com/technorati-favorite-plugin/
-Description: This will inlude your favorites from Technorati
+Description: This will include your favorites from Technorati
 Author: Matt Ericson
-Version: 1.00
+Version: 2.00
 Author URI: http://blog.mericson.com/
 
 INSTRUCTIONS
 ============
 
-Add the following code to your template where you want your favorites to show up
+This version uses wordpress sidebar widget
 
-<?php  technoratiFavoriteList("<username>"); ?>
+Just place this file in your plugins directory then enable it
 
-Or you can do this if you want an un ordered list
+Click on "Presentation" and then "Sidebar Widgets"
 
-<?php  technoratiFavoriteList("<username>", "ul"); ?>
+Drag this over to your side bar hit the configure button 
+enter your user name and you are done
 
 This plugin will use the Wordpress 2.0 Caching system
+
 */
 
 function faves_list_init() {
@@ -42,7 +44,12 @@ function faves_list_init() {
         <div style="text-align:right">
              <label for="faves-list-title" style="line-height:35px;display:block;">Title: <input type="text" id="faves-list-title" name="faves-list-title" value="<?php echo htmlspecialchars($options['title']); ?>" /></label>
              <label for="faves-list-user" style="line-height:35px;display:block;">User: <input type="text" id="faves-list-user" name="faves-list-user" value="<?php echo htmlspecialchars($options['user']); ?>" /></label>
-             <label for="faves-list-type" style="line-height:35px;display:block;">Type (optional): <input type="text" id="faves-list-type" name="faves-list-type" value="<?php echo htmlspecialchars($options['type']); ?>" /></label>
+             <label for="faves-list-type" style="line-height:35px;display:block;">Display Type: 
+             <select id="faves-list-type" name="faves-list-type"> 
+             <option value="ul"  <? if ($options['type'] == 'ul' ) {?> selected  <? } ?> >Unorderd List</option>
+             <option value="ol"  <? if ($options['type'] == 'ol' ) {?> selected  <? } ?> >Orderd List</option>
+             </select>
+             </label>
              <input type="hidden" name="faves-list-submit" id="faves-list-submit" value="Save" />
              <input type="submit" value="Save" />
         </div>
@@ -116,8 +123,6 @@ function faves_list_init() {
     register_sidebar_widget('Technorati Faves', 'technoratiFavoriteList');
     register_widget_control('Technorati Faves', 'faves_list_contol');
 }
-
-
 
 add_action('plugins_loaded', 'faves_list_init');
 ?>
